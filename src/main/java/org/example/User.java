@@ -3,6 +3,8 @@ package org.example;
 public class User {
     private String username;
 
+
+
     public String getPassword() {
         return password;
     }
