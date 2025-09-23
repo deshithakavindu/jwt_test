@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Secure Industry Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-200">
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Secure Industry Login</h2>
+    <div id="message" class="mb-4 text-center text-red-600 font-medium hidden"></div>
+
+    <!-- Login Form -->
+    <div id="login-form">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="login-username">Username</label>
+            <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition duration-200" type="text" id="login-username" placeholder="Enter username" required>
+        </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="login-password">Password</label>
+            <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition duration-200" type="password" id="login-password" placeholder="Enter password" required>
+        </div>
+        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold" onclick="handleLogin()">Login</button>
+        <p class="mt-4 text-center text-sm">Don't have an account? <a href="#" class="text-blue-600 hover:underline" onclick="showRegister()">Register</a></p>
+    </div>
+
+    <!-- Register Form -->
+    <div id="register-form" class="hidden">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="register-username">Username</label>
+            <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition duration-200" type="text" id="register-username" placeholder="Enter username" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="register-password">Password</label>
+            <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition duration-200" type="password" id="register-password" placeholder="Enter password" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="register-telephone">Telephone Number</label>
+            <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition duration-200" type="tel" id="register-telephone" placeholder="Enter telephone number" required>
+        </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="register-address">Location Address</label>
+            <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition duration-200" type="text" id="register-address" placeholder="Enter location address" required>
+        </div>
+        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold" onclick="handleRegister()">Register</button>
+        <p class="mt-4 text-center text-sm">Already have an account? <a href="#" class="text-blue-600 hover:underline" onclick="showLogin()">Login</a></p>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = 'http://localhost:7000';
+
+    function showRegister() {
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('register-form').classList.remove('hidden');
+        document.getElementById('message').classList.add('hidden');
+        clearInputs();
+    }
+
+    function showLogin() {
+        document.getElementById('register-form').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('message').classList.add('hidden');
+        clearInputs();
+    }
+
+    function clearInputs() {
+        document.querySelectorAll('input').forEach(input => input.value = '');
+    }
+
+    function validateUsername(username) {
+        const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+        if (!usernameRegex.test(username)) {
+            return 'Username must be 3-20 characters long and contain only letters, numbers, underscores, or hyphens.';
+        }
+        return null;
+    }
+
+    function validatePassword(password) {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return 'Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.';
+        }
+        return null;
+    }
+
+    function validateTelephone(telephone) {
+        const telephoneRegex = /^\+?[\d\s-]{10,15}$/;
+        if (!telephoneRegex.test(telephone)) {
+            return 'Telephone number must be 10-15 digits, optionally with spaces, hyphens, or a leading +.';
+        }
+        return null;
+    }
+
+    function validateAddress(address) {
+        if (address.length < 5 || address.length > 100) {
+            return 'Address must be between 5 and 100 characters.';
+        }
+        return null;
+    }
+
+    function displayError(message) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.classList.remove('hidden', 'text-green-500');
+        messageDiv.classList.add('text-red-600');
+    }
+
+    function displaySuccess(message) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.classList.remove('hidden', 'text-red-600');
+        messageDiv.classList.add('text-green-500');
+    }
+
+    async function handleRegister() {
+        const username = DOMPurify.sanitize(document.getElementById('register-username').value.trim());
+        const password = document.getElementById('register-password').value;
+        const telephone = DOMPurify.sanitize(document.getElementById('register-telephone').value.trim());
+        const address = DOMPurify.sanitize(document.getElementById('register-address').value.trim());
+
+        // Client-side validation
+        const usernameError = validateUsername(username);
+        if (usernameError) return displayError(usernameError);
+
+        const passwordError = validatePassword(password);
+        if (passwordError) return displayError(passwordError);
+
+        const telephoneError = validateTelephone(telephone);
+        if (telephoneError) return displayError(telephoneError);
+
+        const addressError = validateAddress(address);
+        if (addressError) return displayError(addressError);
+
+        try {
+            const response = await fetch(`${BASE_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, telephone, address })
+            });
+
+            if (response.ok) {
+                displaySuccess('Registration successful! Please login.');
+                showLogin();
+            } else {
+                const error = await response.text();
+                if (error.includes('rate limit')) {
+                    displayError('Too many registration attempts. Please try again later.');
+                } else {
+                    displayError(error || 'Registration failed. Username may already exist.');
+                }
+            }
+        } catch (error) {
+            displayError('Network error: Unable to connect to server.');
+        }
+    }
+
+    async function handleLogin() {
+        const username = DOMPurify.sanitize(document.getElementById('login-username').value.trim());
+        const password = document.getElementById('login-password').value;
+
+        // Client-side validation
+        const usernameError = validateUsername(username);
+        if (usernameError) return displayError(usernameError);
+
+        const passwordError = validatePassword(password);
+        if (passwordError) return displayError(passwordError);
+
+        try {
+            const response = await fetch(`${BASE_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                const token = await response.text();
+                localStorage.setItem('token', token);
+                displaySuccess('Login successful! Accessing protected resource...');
+                await accessProtectedResource(token);
+            } else {
+                const error = await response.text();
+                if (error.includes('rate limit')) {
+                    displayError('Too many login attempts. Please try again later.');
+                } else {
+                    displayError(error || 'Invalid username or password.');
+                }
+            }
+        } catch (error) {
+            displayError('Network error: Unable to connect to server.');
+        }
+    }
+
+    async function accessProtectedResource(token) {
+        try {
+            const response = await fetch(`${BASE_URL}/profile`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                displaySuccess(`Welcome, ${data.username}! Profile: ${JSON.stringify(data)}`);
+            } else {
+                displayError('Access denied! Invalid or expired token.');
+            }
+        } catch (error) {
+            displayError('Network error: Unable to access protected resource.');
+        }
+    }
+</script>
+</body>
+</html>

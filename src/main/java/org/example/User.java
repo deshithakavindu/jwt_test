@@ -2,16 +2,9 @@ package org.example;
 
 public class User {
     private String username;
-
-
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    private String password;
+    private String telephone;
+    private String address;
 
     public String getUsername() {
         return username;
@@ -21,7 +14,27 @@ public class User {
         this.username = username;
     }
 
-    private String password;
+    public String getPassword() {
+        return password;
+    }
 
-    // getters & setters
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getTelephone() {
+        return telephone;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
 }

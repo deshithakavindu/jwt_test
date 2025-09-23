@@ -9,14 +9,16 @@ import java.sql.SQLException;
 
 public class AuthService {
 
-    public void register(String username, String password) {
+    public void register(String username, String password, String telephone, String address) {
         String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
-        String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+        String sql = "INSERT INTO users (username, password, telephone, address) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = Database.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
             stmt.setString(2, hashed);
+            stmt.setString(3, telephone);
+            stmt.setString(4, address);
             stmt.executeUpdate();
             System.out.println("User registered: " + username);
         } catch (SQLException e) {
